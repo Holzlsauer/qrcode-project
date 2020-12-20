@@ -41,9 +41,9 @@ def get_professor_token(s, prof_id, POST_DATETIME, POST_TIMESTAMP):
     ).filter(
         and_(
             ProfessorClass.professor_id == prof_id,
-            # Classes.date.like(search),
-            # Classes.time_start < POST_TIME,
-            # Classes.time_end > POST_TIME
+            Classes.date.like(search),
+            Classes.time_start < POST_TIME,
+            Classes.time_end > POST_TIME
         )
     ).group_by(
         Classes.code,
