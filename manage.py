@@ -7,7 +7,7 @@ from app import app, databaseb
 
 app.config.from_object(os.environ['APP_SETTINGS'])
 
-migrate = Migrate(app, databaseb)
+migrate = Migrate(app, database)
 manager = Manager(app)
 
 manager.add_command('db', MigrateCommand)
