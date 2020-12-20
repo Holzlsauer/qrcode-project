@@ -1,9 +1,7 @@
 import calendar
 import uuid
 from datetime import datetime
-from sqlalchemy import create_engine, func, desc
-from sqlalchemy.orm import sessionmaker
-from config import Config
+from sqlalchemy import func, desc, and_
 
 from models import *
 
@@ -43,12 +41,15 @@ def get_professor_token(s, prof_id, POST_DATETIME, POST_TIMESTAMP):
     ).filter(
         and_(
             ProfessorClass.professor_id == prof_id,
-            Classes.date.like(search),
-            Classes.time_start < POST_TIME,
-            Classes.time_end > POST_TIME
+            # Classes.date.like(search),
+            # Classes.time_start < POST_TIME,
+            # Classes.time_end > POST_TIME
         )
     ).group_by(
-        Classes.code
+        Classes.code,
+        Classes.name,
+        Classes.time_start,
+        Classes.time_end
     ).order_by(
         Classes.time_start
     ).first()
@@ -129,7 +130,10 @@ def get_student_token(s, student_id, POST_DATETIME, POST_TIMESTAMP):
             Classes.time_end > POST_TIME
         )
     ).group_by(
-        Classes.code
+        Classes.code,
+        Classes.name,
+        Classes.time_start,
+        Classes.time_end
     ).order_by(
         Classes.time_start
     ).first()
@@ -180,17 +184,13 @@ def get_student_token(s, student_id, POST_DATETIME, POST_TIMESTAMP):
             }
 
 
-def read_token(data={}):
+def read_token(session, data={}):
 
     try:
         FORM = data['token']
         TOKEN, USER_TYPE = FORM.split(", ")
         POST_DATETIME = datetime.now()
         POST_TIMESTAMP = datetime.timestamp(POST_DATETIME)
-
-        engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, echo=True)
-        Session = sessionmaker(bind=engine)
-        session = Session()
 
         TODAY = POST_DATETIME.date()
         TODAY_TIMESTAMP = datetime.strptime(
@@ -257,16 +257,12 @@ def read_token(data={}):
     # TODO - Positive return
 
 
-def authentication(data={}):
+def authentication(session, data={}):
 
     POST_USERNAME = data['username']
     POST_PASSWORD = data['password']
     POST_DATETIME = datetime.now()
     POST_TIMESTAMP = datetime.timestamp(POST_DATETIME)
-
-    engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, echo=True)
-    Session = sessionmaker(bind=engine)
-    session = Session()
 
     """Query for user"""
     query = session.query(User).filter(User.username.in_(

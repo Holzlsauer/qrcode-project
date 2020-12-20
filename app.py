@@ -1,4 +1,5 @@
 import os
+from database import db
 from flask import Flask, request, json
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -6,7 +7,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 app.config.from_object(os.environ['APP_SETTINGS'])
-db = SQLAlchemy(app)
+database = db.init_app(app)
 CORS(app)
 
 from backend import authentication, read_token  # nopep8
@@ -25,7 +26,7 @@ def catch_all(path):
 
 @app.route('/auth', methods=['POST'])
 def auth():
-    result = authentication(request.json)
+    result = authentication(db.session, request.json)
     if result:
         response = app.response_class(
             response=json.dumps(result),
@@ -46,7 +47,7 @@ def auth():
 
 @app.route('/read', methods=['POST'])
 def read():
-    result = read_token(request.json)
+    result = read_token(db.session, request.json)
     if result:
         response = app.response_class(
             response=json.dumps(result),
